@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ScriptFlow Studio | Professional Screenwriting</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Courier Prime & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Inter', sans-serif; }
+
+    /* Standard Courier Prime 12pt typographic grid */
+    .screenplay-font {
+      font-family: 'Courier Prime', Courier, monospace;
+      font-size: 15px;
+      line-height: 1.25;
+    }
+
+    /* Industry Indentation Rules */
+    .element-scene_heading {
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-top: 1.75rem;
+      margin-bottom: 0.5rem;
+      color: #000;
+    }
+
+    .element-action {
+      margin-top: 0.5rem;
+      margin-bottom: 0.75rem;
+      width: 100%;
+      color: #111;
+    }
+
+    .element-character {
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-top: 1.2rem;
+      margin-bottom: 0;
+      margin-left: 36%;
+      width: 64%;
+      color: #000;
+    }
+
+    .element-parenthetical {
+      margin-top: 0;
+      margin-bottom: 0;
+      margin-left: 28%;
+      width: 50%;
+      color: #374151;
+    }
+
+    .element-dialogue {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+      margin-left: 18%;
+      width: 64%;
+      color: #000;
+    }
+
+    .element-transition {
+      text-transform: uppercase;
+      font-weight: 700;
+      text-align: right;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+      color: #000;
+    }
+
+    /* Mobile Responsive Indents */
+    @media (max-width: 640px) {
+      .element-character { margin-left: 22%; width: 78%; }
+      .element-parenthetical { margin-left: 15%; width: 70%; }
+      .element-dialogue { margin-left: 8%; width: 92%; }
+    }
+
+    [contenteditable]:empty:before {
+      content: attr(data-placeholder);
+      color: #9ca3af;
+      pointer-events: none;
+    }
+
+    /* Exact Industry Print Specs (8.5" x 11" Paper, 1.5" Left Margin) */
+    @media print {
+      body { background: white !important; color: black !important; }
+      .no-print { display: none !important; }
+      #screenplay-page {
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 1in 1in 1in 1.5in !important;
+        max-width: 100% !important;
+      }
+      .title-page-print {
+        page-break-after: always;
+        height: 9.5in;
+        display: flex !important;
+        flex-direction: column;
+        justify-content: space-between;
+        text-align: center;
+        padding-top: 3in;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 h-[100dvh] flex flex-col overflow-hidden">
+
+  <!-- Top App Navigation -->
+  <header class="no-print h-14 bg-slate-900 border-b border-slate-800 px-3 md:px-5 flex items-center justify-between shrink-0 z-30">
+    <div class="flex items-center gap-2 md:gap-4">
+      <button onclick="toggleSidebar()" class="p-2 -ml-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+      </button>
+      <div class="flex flex-col">
+        <input id="script-title" type="text" value="THE UNTITLED CHRONICLES" class="bg-transparent border-b border-transparent focus:border-amber-500 font-bold text-xs md:text-sm text-slate-100 outline-none w-36 md:w-60 uppercase truncate">
+        <span class="text-[9px] text-amber-500 font-semibold tracking-wider uppercase">ScriptFlow Pro</span>
+      </div>
+    </div>
+
+    <!-- View Mode Switcher -->
+    <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs font-semibold">
+      <button onclick="switchView('script')" id="tab-script" class="px-2.5 py-1 rounded bg-amber-500 text-slate-950 font-bold transition">Script</button>
+      <button onclick="switchView('cards')" id="tab-cards" class="px-2.5 py-1 rounded text-slate-400 hover:text-white transition">Beat Board</button>
+      <button onclick="switchView('titlepage')" id="tab-titlepage" class="px-2.5 py-1 rounded text-slate-400 hover:text-white transition">Title Page</button>
+      <button onclick="switchView('stats')" id="tab-stats" class="px-2.5 py-1 rounded text-slate-400 hover:text-white transition">Stats</button>
+    </div>
+
+    <!-- Action Center -->
+    <div class="flex items-center gap-2">
+      <button onclick="startTableRead()" id="tts-btn" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-md text-xs font-semibold transition">
+        <span>▶ Read Aloud</span>
+      </button>
+      
+      <!-- Import / Export Dropdown Trigger -->
+      <div class="relative">
+        <button onclick="toggleMenu('export-menu')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md text-xs font-bold transition flex items-center gap-1">
+          Export / File ▾
+        </button>
+        <div id="export-menu" class="hidden absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl py-1 text-xs text-slate-200 z-50">
+          <button onclick="window.print()" class="w-full text-left px-4 py-2 hover:bg-slate-800">Print / Save as PDF</button>
+          <button onclick="exportFountain()" class="w-full text-left px-4 py-2 hover:bg-slate-800">Export as .fountain</button>
+          <button onclick="exportFDX()" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-amber-400 font-bold">Export Final Draft (.fdx)</button>
+          <button onclick="exportJSON()" class="w-full text-left px-4 py-2 hover:bg-slate-800">Export Backup Project (.json)</button>
+          <hr class="border-slate-800 my-1">
+          <label class="w-full block px-4 py-2 hover:bg-slate-800 cursor-pointer">
+            Import Fountain / Text
+            <input type="file" id="file-importer" accept=".fountain,.txt,.json" class="hidden" onchange="importFile(event)">
+          </label>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Workspace Container -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- Outliner Sidebar (Collapsible) -->
+    <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden"></div>
+    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-72 bg-slate-950 border-r border-slate-800 flex flex-col z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out">
+      <div class="p-3 border-b border-slate-800 flex justify-between items-center">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Scene Outline</span>
+        <span id="scene-counter" class="text-xs font-mono bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">0 Scenes</span>
+      </div>
+      <div id="sidebar-scene-list" class="flex-1 overflow-y-auto p-2 space-y-1.5 text-xs text-slate-300">
+        <!-- Rendered Scenes -->
+      </div>
+      <div class="p-3 border-t border-slate-800 text-[11px] text-slate-400 font-mono flex justify-between">
+        <span>Pages: <strong id="metric-pages" class="text-slate-100">1</strong></span>
+        <span>Run Time: <strong id="metric-time" class="text-slate-100">~1m</strong></span>
+      </div>
+    </aside>
+
+    <!-- Center Dynamic Viewport -->
+    <main class="flex-1 overflow-y-auto bg-slate-900 flex justify-center p-2 sm:p-4 md:py-8 pb-32" id="main-viewport">
+      
+      <!-- VIEW 1: Screenplay Page -->
+      <div id="view-script" class="w-full max-w-[816px] min-h-[92vh] bg-white text-slate-950 rounded shadow-2xl p-6 sm:p-12 md:p-[64px] screenplay-font outline-none">
+        <div id="editor" class="min-h-[600px] outline-none">
+          <div class="script-element element-scene_heading" data-type="scene_heading">EXT. NEO-TOKYO RUNWAY - NIGHT</div>
+          <div class="script-element element-action" data-type="action">Rain lashes the asphalt under the hum of colossal advertising blimps. KAI (30s), trenchcoat soaked, taps a flashing neural device behind his ear.</div>
+          <div class="script-element element-character" data-type="character">KAI</div>
+          <div class="script-element element-parenthetical" data-type="parenthetical">(whispering urgently)</div>
+          <div class="script-element element-dialogue" data-type="dialogue">The broadcast code is active. Tell me the drop site isn't compromised.</div>
+          <div class="script-element element-character" data-type="character">MIRA (V.O.)</div>
+          <div class="script-element element-dialogue" data-type="dialogue">It was compromised twenty minutes ago. Run, Kai. Now.</div>
+          <div class="script-element element-transition" data-type="transition">SMASH CUT TO:</div>
+          <div class="script-element element-scene_heading" data-type="scene_heading">INT. SUBWAY TUNNELS - CONTINUOUS</div>
+          <div class="script-element element-action" data-type="action">A blinding subway train roars past, spraying sparks into the humid dark.</div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: Virtual Corkboard Beat Board -->
+      <div id="view-cards" class="hidden w-full max-w-5xl">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-lg font-bold text-slate-100">Index Cards / Beat Board</h2>
+          <button onclick="addSceneFromCard()" class="px-3 py-1.5 bg-amber-500 text-slate-950 font-bold rounded text-xs">+ New Beat / Scene</button>
+        </div>
+        <div id="card-board" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <!-- Rendered Beat Cards -->
+        </div>
+      </div>
+
+      <!-- VIEW 3: Title Page Editor -->
+      <div id="view-titlepage" class="hidden w-full max-w-[816px] min-h-[90vh] bg-white text-slate-950 rounded p-12 screenplay-font flex flex-col justify-between text-center shadow-2xl">
+        <div class="pt-24 space-y-4">
+          <input id="tp-title" class="text-2xl font-bold uppercase w-full text-center outline-none border-b border-dashed border-slate-300 focus:border-black" value="THE UNTITLED CHRONICLES">
+          <p class="text-xs">written by</p>
+          <input id="tp-author" class="text-base font-bold w-full text-center outline-none border-b border-dashed border-slate-300 focus:border-black" value="Your Name Here">
+        </div>
+        <div class="pt-16 pb-8 text-left text-xs space-y-1">
+          <p class="font-bold">Contact / Information:</p>
+          <input id="tp-contact" class="w-full outline-none border-b border-dashed border-slate-300 focus:border-black" value="Representation: CAA / Management 360">
+          <input id="tp-contact-email" class="w-full outline-none border-b border-dashed border-slate-300 focus:border-black" value="email@domain.com">
+        </div>
+      </div>
+
+      <!-- VIEW 4: Industry Breakdown & Statistics -->
+      <div id="view-stats" class="hidden w-full max-w-4xl text-slate-100 space-y-6">
+        <h2 class="text-lg font-bold">Script Analytics & Metrics</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+            <span class="text-xs text-slate-400">Total Word Count</span>
+            <p id="stat-words" class="text-2xl font-black text-amber-500 mt-1">0</p>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+            <span class="text-xs text-slate-400">Estimated Pages</span>
+            <p id="stat-pages-view" class="text-2xl font-black text-amber-500 mt-1">0</p>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+            <span class="text-xs text-slate-400">Est. Screen Time</span>
+            <p id="stat-time-view" class="text-2xl font-black text-amber-500 mt-1">0 min</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+          <h3 class="text-sm font-bold text-slate-200 mb-4">Character Dialogue Breakdown</h3>
+          <div id="character-breakdown-list" class="space-y-3 text-xs">
+            <!-- Dynamic stats -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Mobile Floating Accessory Bar (Fixed above virtual keyboard) -->
+  <div class="no-print fixed bottom-0 left-0 right-0 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 p-2 z-30">
+    <div class="flex items-center justify-between gap-1 overflow-x-auto">
+      <div class="flex items-center gap-1 shrink-0">
+        <button onmousedown="handleTypeChange('scene_heading')" class="px-2.5 py-2 text-[11px] font-bold rounded bg-slate-900 border border-slate-700 text-slate-200 active:bg-amber-500 active:text-black">SCENE</button>
+        <button onmousedown="handleTypeChange('action')" class="px-2.5 py-2 text-[11px] font-bold rounded bg-slate-900 border border-slate-700 text-slate-200 active:bg-amber-500 active:text-black">ACTION</button>
+        <button onmousedown="handleTypeChange('character')" class="px-2.5 py-2 text-[11px] font-bold rounded bg-slate-900 border border-slate-700 text-slate-200 active:bg-amber-500 active:text-black">CHAR</button>
+        <button onmousedown="handleTypeChange('parenthetical')" class="px-2.5 py-2 text-[11px] font-bold rounded bg-slate-900 border border-slate-700 text-slate-200 active:bg-amber-500 active:text-black">( )</button>
+        <button onmousedown="handleTypeChange('dialogue')" class="px-2.5 py-2 text-[11px] font-bold rounded bg-slate-900 border border-slate-700 text-slate-200 active:bg-amber-500 active:text-black">DIALOGUE</button>
+        <button onmousedown="handleTypeChange('transition')" class="px-2.5 py-2 text-[11px] font-bold rounded bg-slate-900 border border-slate-700 text-slate-200 active:bg-amber-500 active:text-black">TRANS</button>
+      </div>
+      <div class="flex items-center gap-1 shrink-0 pl-1 border-l border-slate-800">
+        <button onmousedown="triggerTab(event)" class="px-3 py-2 text-[11px] font-bold rounded bg-slate-800 text-amber-400 active:bg-amber-400 active:text-black">TAB ⇥</button>
+        <button onmousedown="triggerEnter(event)" class="px-3 py-2 text-[11px] font-bold rounded bg-amber-500 text-slate-950 font-black active:bg-amber-400">RET ↵</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Engine Script -->
+  <script>
+    const editor = document.getElementById('editor');
+    const scriptTitle = document.getElementById('script-title');
+    const tpTitle = document.getElementById('tp-title');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+    let currentBlock = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      bindBlocks();
+      updateMetrics();
+      renderScenes();
+    });
+
+    // Make content editable and track active blocks
+    function bindBlocks() {
+      editor.querySelectorAll('.script-element').forEach(el => {
+        el.contentEditable = 'true';
+        el.spellcheck = true;
+        el.dataset.placeholder = getPlaceholder(el.dataset.type);
+        el.onfocus = () => currentBlock = el;
+      });
+    }
+
+    function getPlaceholder(type) {
+      switch(type) {
+        case 'scene_heading': return 'INT./EXT. LOCATION - TIME';
+        case 'character': return 'CHARACTER NAME';
+        case 'parenthetical': return '(direction)';
+        case 'dialogue': return 'Dialogue...';
+        case 'transition': return 'CUT TO:';
+        default: return 'Action / Description...';
+      }
+    }
+
+    // Tab / Enter Workflow Logic
+    editor.addEventListener('keydown', (e) => {
+      const active = document.activeElement;
+      if (!active || !active.classList.contains('script-element')) return;
+
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        cycleType(active);
+      } else if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        runSmartEnter(active);
+      } else if (e.key === 'Backspace' && active.innerText.trim() === '') {
+        const prev = active.previousElementSibling;
+        if (prev && editor.children.length > 1) {
+          e.preventDefault();
+          active.remove();
+          prev.focus();
+          setCursorEnd(prev);
+          updateMetrics();
+          renderScenes();
+          saveState();
+        }
+      }
+    });
+
+    function cycleType(el) {
+      const t = el.dataset.type;
+      let next = 'action';
+      if (t === 'action') next = 'character';
+      else if (t === 'character') next = 'dialogue';
+      else if (t === 'dialogue') next = 'parenthetical';
+      else if (t === 'parenthetical') next = 'dialogue';
+      else if (t === 'scene_heading') next = 'action';
+      changeElementType(el, next);
+    }
+
+    function runSmartEnter(el) {
+      const t = el.dataset.type;
+      const text = el.innerText.trim();
+
+      if (text === '') {
+        changeElementType(el, 'action');
+        return;
+      }
+
+      let nextType = 'action';
+      if (t === 'scene_heading') nextType = 'action';
+      else if (t === 'action') nextType = 'action';
+      else if (t === 'character') nextType = 'dialogue';
+      else if (t === 'parenthetical') nextType = 'dialogue';
+      else if (t === 'dialogue') nextType = 'character';
+
+      if (t === 'scene_heading' || t === 'character') el.innerText = el.innerText.toUpperCase();
+      if (t === 'parenthetical') {
+        if (!el.innerText.startsWith('(')) el.innerText = '(' + el.innerText;
+        if (!el.innerText.endsWith(')')) el.innerText = el.innerText + ')';
+      }
+
+      const newEl = createBlock(nextType, '');
+      el.insertAdjacentElement('afterend', newEl);
+      bindBlocks();
+      newEl.focus();
+      updateMetrics();
+      renderScenes();
+      saveState();
+    }
+
+    function createBlock(type, content = '') {
+      const div = document.createElement('div');
+      div.className = `script-element element-${type}`;
+      div.dataset.type = type;
+      div.dataset.placeholder = getPlaceholder(type);
+      div.contentEditable = 'true';
+      div.innerText = content;
+      return div;
+    }
+
+    function changeElementType(el, targetType) {
+      ['scene_heading','action','character','parenthetical','dialogue','transition'].forEach(t => el.classList.remove(`element-${t}`));
+      el.classList.add(`element-${targetType}`);
+      el.dataset.type = targetType;
+      el.dataset.placeholder = getPlaceholder(targetType);
+      if (targetType === 'character' || targetType === 'scene_heading') el.innerText = el.innerText.toUpperCase();
+      renderScenes();
+      saveState();
+    }
+
+    function handleTypeChange(type) {
+      const target = currentBlock || editor.querySelector('.script-element:last-child');
+      if (target) {
+        changeElementType(target, type);
+        target.focus();
+      }
+    }
+
+    function triggerTab(e) {
+      e.preventDefault();
+      const target = currentBlock || editor.querySelector('.script-element:last-child');
+      if (target) { target.focus(); cycleType(target); }
+    }
+
+    function triggerEnter(e) {
+      e.preventDefault();
+      const target = currentBlock || editor.querySelector('.script-element:last-child');
+      if (target) { target.focus(); runSmartEnter(target); }
+    }
+
+    function setCursorEnd(el) {
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    // View Switching Engine (Script, Corkboard, Title, Stats)
+    function switchView(viewName) {
+      ['script', 'cards', 'titlepage', 'stats'].forEach(v => {
+        document.getElementById(`view-${v}`).classList.add('hidden');
+        document.getElementById(`tab-${v}`).className = "px-2.5 py-1 rounded text-slate-400 hover:text-white transition";
+      });
+      document.getElementById(`view-${viewName}`).classList.remove('hidden');
+      document.getElementById(`tab-${viewName}`).className = "px-2.5 py-1 rounded bg-amber-500 text-slate-950 font-bold transition";
+
+      if (viewName === 'cards') renderCards();
+      if (viewName === 'stats') renderStats();
+    }
+
+    // Beat Board Rendering
+    function renderCards() {
+      const board = document.getElementById('card-board');
+      board.innerHTML = '';
+      editor.querySelectorAll('.element-scene_heading').forEach((h, index) => {
+        let synopsis = '';
+        let sibling = h.nextElementSibling;
+        while (sibling && !sibling.classList.contains('element-scene_heading')) {
+          if (sibling.classList.contains('element-action')) {
+            synopsis += sibling.innerText + ' ';
+          }
+          sibling = sibling.nextElementSibling;
+        }
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800 hover:border-amber-500/50 p-4 rounded-xl flex flex-col justify-between shadow-lg transition";
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[10px] font-bold text-amber-500 tracking-wider font-mono">SCENE ${index + 1}</span>
+            </div>
+            <h4 class="font-bold text-sm text-slate-100 font-mono mb-2">${h.innerText || 'UNTITLED SCENE'}</h4>
+            <p class="text-xs text-slate-400 line-clamp-4 leading-relaxed">${synopsis || 'No action description yet.'}</p>
+          </div>
+          <button class="mt-4 text-[11px] font-semibold text-amber-400 hover:underline text-left" onclick="jumpToScene(${index})">Jump to Scene →</button>
+        `;
+        board.appendChild(card);
+      });
+    }
+
+    function addSceneFromCard() {
+      const heading = createBlock('scene_heading', 'INT. NEW SCENE - DAY');
+      const action = createBlock('action', 'Describe what we see...');
+      editor.appendChild(heading);
+      editor.appendChild(action);
+      bindBlocks();
+      renderScenes();
+      renderCards();
+      saveState();
+    }
+
+    function jumpToScene(idx) {
+      switchView('script');
+      const headings = editor.querySelectorAll('.element-scene_heading');
+      if (headings[idx]) {
+        headings[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        headings[idx].focus();
+      }
+    }
+
+    // Outliner Generator
+    function renderScenes() {
+      const list = document.getElementById('sidebar-scene-list');
+      list.innerHTML = '';
+      let count = 0;
+      editor.querySelectorAll('.element-scene_heading').forEach((el, idx) => {
+        count++;
+        const item = document.createElement('div');
+        item.className = "p-2 rounded bg-slate-900/60 border-l-2 border-amber-500 text-xs font-mono truncate cursor-pointer hover:bg-slate-800 active:bg-slate-700";
+        item.innerText = `${count}. ${el.innerText || 'UNTITLED'}`;
+        item.onclick = () => {
+          if (window.innerWidth < 768) toggleSidebar();
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.focus();
+        };
+        list.appendChild(item);
+      });
+      document.getElementById('scene-counter').innerText = `${count} Scenes`;
+    }
+
+    // Analytics Engine
+    function renderStats() {
+      const charCounts = {};
+      let totalDialogue = 0;
+
+      editor.querySelectorAll('.element-character').forEach(c => {
+        const name = c.innerText.trim().replace(/\s*\(.*?\)\s*/g, '').toUpperCase();
+        if (name) {
+          charCounts[name] = (charCounts[name] || 0) + 1;
+          totalDialogue++;
+        }
+      });
+
+      const container = document.getElementById('character-breakdown-list');
+      container.innerHTML = '';
+
+      Object.entries(charCounts).sort((a,b) => b[1] - a[1]).forEach(([name, count]) => {
+        const percent = Math.round((count / totalDialogue) * 100);
+        const row = document.createElement('div');
+        row.innerHTML = `
+          <div class="flex justify-between font-mono mb-1">
+            <span class="font-bold text-slate-200">${name}</span>
+            <span class="text-slate-400">${count} speeches (${percent}%)</span>
+          </div>
+          <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+            <div class="bg-amber-500 h-full" style="width: ${percent}%"></div>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function updateMetrics() {
+      const text = editor.innerText || '';
+      const words = text.trim().split(/\s+/).filter(Boolean).length;
+      const elements = editor.querySelectorAll('.script-element').length;
+      const pages = Math.max(1, Math.ceil(elements / 22));
+
+      document.getElementById('stat-words').innerText = words.toLocaleString();
+      document.getElementById('stat-pages-view').innerText = pages;
+      document.getElementById('stat-time-view').innerText = `~${pages} min`;
+      document.getElementById('metric-pages').innerText = pages;
+      document.getElementById('metric-time').innerText = `~${pages}m`;
+    }
+
+    // Audio Table Read (Web Speech API)
+    let isSpeaking = false;
+    function startTableRead() {
+      const btn = document.getElementById('tts-btn');
+      if (isSpeaking) {
+        window.speechSynthesis.cancel();
+        isSpeaking = false;
+        btn.innerHTML = '<span>▶ Read Aloud</span>';
+        btn.classList.replace('bg-rose-600', 'bg-indigo-600');
+        return;
+      }
+
+      const elements = Array.from(editor.querySelectorAll('.script-element'));
+      let i = 0;
+      isSpeaking = true;
+      btn.innerHTML = '<span>⏹ Stop Read</span>';
+      btn.classList.replace('bg-indigo-600', 'bg-rose-600');
+
+      function speakNext() {
+        if (!isSpeaking || i >= elements.length) {
+          isSpeaking = false;
+          btn.innerHTML = '<span>▶ Read Aloud</span>';
+          btn.classList.replace('bg-rose-600', 'bg-indigo-600');
+          return;
+        }
+
+        const el = elements[i];
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const utterance = new SpeechSynthesisUtterance(el.innerText);
+        
+        // Pitch shift for characters vs action
+        if (el.dataset.type === 'character') utterance.pitch = 1.3;
+        else if (el.dataset.type === 'action') utterance.pitch = 0.9;
+        else utterance.pitch = 1.0;
+
+        utterance.onend = () => { i++; speakNext(); };
+        window.speechSynthesis.speak(utterance);
+      }
+      speakNext();
+    }
+
+    // Export Hollywood Final Draft (.fdx XML Standard)
+    function exportFDX() {
+      let fdx = `<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n<FinalDraft DocumentType="Script" Template="No" Version="1">\n<Content>\n`;
+      editor.querySelectorAll('.script-element').forEach(el => {
+        let type = "Action";
+        const t = el.dataset.type;
+        if (t === 'scene_heading') type = "Scene Heading";
+        else if (t === 'character') type = "Character";
+        else if (t === 'parenthetical') type = "Parenthetical";
+        else if (t === 'dialogue') type = "Dialogue";
+        else if (t === 'transition') type = "Transition";
+
+        fdx += `<Paragraph Type="${type}"><Text>${escapeXML(el.innerText)}</Text></Paragraph>\n`;
+      });
+      fdx += `</Content>\n</FinalDraft>`;
+      downloadFile(fdx, `${scriptTitle.value}.fdx`, 'text/xml');
+    }
+
+    function escapeXML(str) {
+      return str.replace(/[<>&'"]/g, c => ({'<':'&lt;', '>':'&gt;', '&':'&amp;', '\'':'&apos;', '"':'&quot;'}[c]));
+    }
+
+    // Export .fountain
+    function exportFountain() {
+      let f = `Title: ${scriptTitle.value}\nAuthor: ${tpTitle.value}\n\n`;
+      editor.querySelectorAll('.script-element').forEach(el => {
+        const t = el.dataset.type;
+        const txt = el.innerText.trim();
+        if (t === 'scene_heading') f += `\n${txt.toUpperCase()}\n\n`;
+        else if (t === 'action') f += `${txt}\n\n`;
+        else if (t === 'character') f += `${txt.toUpperCase()}\n`;
+        else if (t === 'parenthetical') f += `${txt}\n`;
+        else if (t === 'dialogue') f += `${txt}\n\n`;
+        else if (t === 'transition') f += `> ${txt.toUpperCase()}\n\n`;
+      });
+      downloadFile(f, `${scriptTitle.value}.fountain`, 'text/plain');
+    }
+
+    function exportJSON() {
+      const data = {
+        title: scriptTitle.value,
+        author: tpTitle.value,
+        content: editor.innerHTML
+      };
+      downloadFile(JSON.stringify(data, null, 2), `${scriptTitle.value}.json`, 'application/json');
+    }
+
+    function downloadFile(content, fileName, contentType) {
+      const a = document.createElement("a");
+      const file = new Blob([content], { type: contentType });
+      a.href = URL.createObjectURL(file);
+      a.download = fileName;
+      a.click();
+    }
+
+    // Import Fountain / Project File
+    function importFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target.result;
+        if (file.name.endsWith('.json')) {
+          const parsed = JSON.parse(text);
+          editor.innerHTML = parsed.content;
+          scriptTitle.value = parsed.title;
+        } else {
+          // Quick fountain line parser
+          editor.innerHTML = '';
+          const lines = text.split('\n');
+          lines.forEach(line => {
+            const l = line.trim();
+            if (!l) return;
+            let type = 'action';
+            if (l.startsWith('INT.') || l.startsWith('EXT.')) type = 'scene_heading';
+            else if (l === l.toUpperCase() && l.length < 35 && !l.endsWith('.')) type = 'character';
+            else if (l.startsWith('(') && l.endsWith(')')) type = 'parenthetical';
+            editor.appendChild(createBlock(type, l));
+          });
+        }
+        bindBlocks();
+        renderScenes();
+        updateMetrics();
+        saveState();
+      };
+      reader.readAsText(file);
+    }
+
+    // Auto-Save
+    function saveState() {
+      localStorage.setItem('sf_content', editor.innerHTML);
+      localStorage.setItem('sf_title', scriptTitle.value);
+    }
+
+    function loadState() {
+      const c = localStorage.getItem('sf_content');
+      const t = localStorage.getItem('sf_title');
+      if (c) editor.innerHTML = c;
+      if (t) scriptTitle.value = t;
+    }
+
+    function toggleSidebar() {
+      const isClosed = sidebar.classList.contains('-translate-x-full');
+      if (isClosed) {
+        sidebar.classList.remove('-translate-x-full');
+        sidebarBackdrop.classList.remove('hidden');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        sidebarBackdrop.classList.add('hidden');
+      }
+    }
+
+    function toggleMenu(id) {
+      document.getElementById(id).classList.toggle('hidden');
+    }
+  </script>
+</body>
+</html>
